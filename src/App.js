@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { Layout, Menu, Button, Avatar, Dropdown, Modal } from "antd";
+import { Layout, Menu, Button, Avatar, Dropdown, Modal, Typography, Descriptions, Row, Col, Switch, Select, Form, Input } from "antd";
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -22,12 +22,34 @@ import HumanManagement from "./components/HumanManagement";
 import CRM from "./components/CRM";
 
 const { Header, Sider, Content, Footer } = Layout;
+const { Title } = Typography;
+const { Option } = Select;
 
 const App = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState(null);
+  const [userProfile, setUserProfile] = useState({
+    name: "John Doe",
+    email: "john.doe@example.com",
+    role: "Administrator",
+    department: "IT",
+    joinDate: "2022-01-01",
+    lastLogin: "2023-04-15 09:30 AM",
+  });
+  const [settings, setSettings] = useState({
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    twoFactorAuth: false,
+  });
+  const [userSettings, setUserSettings] = useState({
+    fullName: "John Doe",
+    email: "john.doe@example.com",
+    phoneNumber: "+1 (555) 123-4567",
+    jobTitle: "Software Engineer",
+  });
 
   useEffect(() => {
     const handleResize = () => {
@@ -49,6 +71,85 @@ const App = () => {
 
   const handleModalCancel = () => {
     setIsModalVisible(false);
+  };
+
+  const handleSettingChange = (setting, value) => {
+    setUserSettings(prevSettings => ({
+      ...prevSettings,
+      [setting]: value
+    }));
+  };
+
+  const renderModalContent = () => {
+    switch (modalContent) {
+      case "Profile":
+        return (
+          <>
+            <Row gutter={[16, 16]} align="middle" justify="center">
+              <Col>
+                <Avatar size={64} icon={<UserOutlined />} style={{ backgroundColor: '#1890ff' }} />
+              </Col>
+              <Col>
+                <Title level={4}>{userProfile.name}</Title>
+                <Typography.Text type="secondary">{userProfile.role}</Typography.Text>
+              </Col>
+            </Row>
+            <Descriptions bordered column={1} style={{ marginTop: '20px' }}>
+              <Descriptions.Item label="Email">{userProfile.email}</Descriptions.Item>
+              <Descriptions.Item label="Department">{userProfile.department}</Descriptions.Item>
+              <Descriptions.Item label="Join Date">{userProfile.joinDate}</Descriptions.Item>
+              <Descriptions.Item label="Last Login">{userProfile.lastLogin}</Descriptions.Item>
+            </Descriptions>
+            <div style={{ marginTop: '20px', textAlign: 'right' }}>
+              <Button type="primary" onClick={handleModalCancel}>Close</Button>
+            </div>
+          </>
+        );
+      case "Settings":
+        return (
+          <Form layout="vertical">
+            <Form.Item label="Full Name">
+              <Input 
+                value={userSettings.fullName} 
+                onChange={(e) => handleSettingChange('fullName', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item label="Email">
+              <Input 
+                value={userSettings.email} 
+                onChange={(e) => handleSettingChange('email', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item label="Phone Number">
+              <Input 
+                value={userSettings.phoneNumber} 
+                onChange={(e) => handleSettingChange('phoneNumber', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item label="Job Title">
+              <Input 
+                value={userSettings.jobTitle} 
+                onChange={(e) => handleSettingChange('jobTitle', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" onClick={handleModalCancel}>Save Changes</Button>
+            </Form.Item>
+          </Form>
+        );
+      case "Logout":
+        return (
+          <>
+            <p>Are you sure you want to logout?</p>
+            <div style={{ marginTop: '20px', textAlign: 'right' }}>
+              <Button onClick={handleModalCancel} style={{ marginRight: '10px' }}>Cancel</Button>
+              <Button type="primary" danger onClick={handleModalCancel}>Confirm Logout</Button>
+            </div>
+          </>
+        );
+      default:
+        return <p>This is the {modalContent} modal content.</p>;
+    }
   };
 
   // Define routes with appropriate paths and icons
@@ -146,9 +247,17 @@ const App = () => {
             <Dropdown overlay={profileMenu} placement="bottomRight" arrow>
               <Avatar
                 icon={<UserOutlined />}
-                style={{ backgroundColor: '#1890ff', cursor: 'pointer' }}
+                style={{ 
+                  backgroundColor: '#1890ff', 
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
                 size={isMobile ? "small" : "default"}
-              />
+              >
+                <UserOutlined style={{ fontSize: isMobile ? '14px' : '18px' }} />
+              </Avatar>
             </Dropdown>
           </Header>
           <Content
@@ -184,17 +293,13 @@ const App = () => {
         </Layout>
       </Layout>
       <Modal
-        title={modalContent}
+        title={null}
         visible={isModalVisible}
         onCancel={handleModalCancel}
         footer={null}
+        width={400}
       >
-        <p>This is the {modalContent} modal content.</p>
-        {modalContent === "Logout" && (
-          <Button type="primary" danger onClick={handleModalCancel}>
-            Confirm Logout
-          </Button>
-        )}
+        {renderModalContent()}
       </Modal>
     </Router>
   );
